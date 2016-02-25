@@ -3,7 +3,7 @@
  * @ratelimitRequests A session based helper to enforce a cooldown period on repeated
  *                   request attempts.
  * @author Craig van Tonder
- * @version 0.0.3
+ * @version 0.0.4
  */
 
 class ratelimitRequests
@@ -23,7 +23,7 @@ class ratelimitRequests
   public function __construct()
   {
     # Define the index of the request session
-    $this->sessionName = 'RATELIMITE_REQUEST_EXAMPLE_COM';
+    $this->sessionName = 'RATELIMIT_REQUESTS_EXAMPLE_COM';
     # Initalise sessions if they have not already been started
     $this->initialiseSessions ();
   }
@@ -85,7 +85,7 @@ class ratelimitRequests
         // Set the new count of requests
         $this->setSession('reqCount', $count);
         // Set the timeout status
-        $this->setSession('timeoutStatus', TRUE);
+        $this->setSession('timeoutStatus', FALSE);
       }
     }
 
@@ -111,7 +111,7 @@ class ratelimitRequests
     // Set the timeout time
     $this->setSession('timeoutDuration', time());
     // Set the timeout status
-    $this->setSession('timeoutStatus', FALSE);
+    $this->setSession('timeoutStatus', TRUE);
   }
 
   /**
@@ -125,7 +125,7 @@ class ratelimitRequests
     // Set the timeout state
     $this->setSession('timeout', FALSE);
     // Set the timeout status
-    $this->setSession('timeoutStatus', TRUE);
+    $this->setSession('timeoutStatus', FALSE);
   }
 
   /**
@@ -180,9 +180,9 @@ class ratelimitRequests
   {
     // If we have an array
     if (strlen($sessionKey) > 0) {
-      return $_SESSION[$sessionName][$sessionKey];
+      return $_SESSION[$this->sessionName][$sessionKey];
     } else {
-      return $_SESSION[$sessionName];
+      return $_SESSION[$this->sessionName];
     }
   }
 }

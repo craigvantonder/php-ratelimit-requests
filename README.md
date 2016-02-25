@@ -10,10 +10,10 @@ Example Usage:
     require_once('ratelimitRequests.php');
     // Initialise / Construct the class
     $rate = new ratelimitRequests ();
-    # Evaluate with 3 requests every 10 seconds and if it exceeds timeout for one minutes
-    $eval = $rate->$evaluate(3, 10, 60);
+    # Evaluate with 3 requests every 10 seconds and if it exceeds then timeout for one minutes
+    $ratelimit = $rate->evaluate(3, 10, 60);
     # The request passed enumeration
-    if ($rate) {
+    if ($ratelimit) {
       printf('This is a successful request!');
       exit;
     }
