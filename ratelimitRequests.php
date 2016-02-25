@@ -8,41 +8,38 @@
 
 class ratelimitRequests
 {
-  /**
-    * Create router in one call from config.
-    *
-    * @param $ratelimit int Limit is x requests - 120
-    * @param $ratelimitPeriod int Every x seconds - 60
-    * @param $timeoutDuration int Timeout lasts x seconds - 360
-    */
-
-  // The key/name of the storage session
+  # The key/name of the storage session
   private $sessionName;
-  // Request limit at x requests
+  # Request limit at x requests
   private $ratelimit;
-  // Request limit reset after x seconds
+  # Request limit reset after x seconds
   private $ratelimitPeriod;
-  // Timeout period lasts is x seconds
+  # Timeout period lasts is x seconds
   private $timeoutDuration;
 
-  public function __construct($ratelimit, $ratelimitPeriod, $timeoutDuration)
+  /**
+    * On class construction
+    */
+  public function __construct()
   {
     # Define the index of the request session
     $this->sessionName = 'RATELIMITE_REQUEST_EXAMPLE_COM';
-    # Rate limit and timeout configuration
-    $this->ratelimit = $ratelimit;
-    $this->ratelimitPeriod = $ratelimitPeriod;
-    $this->timeoutDuration = $timeoutDuration;
     # Initalise sessions if they have not already been started
     $this->initialiseSessions ();
-    # Evaluate the request and cooldown the client if neccessary
-    $this->ratelimitRequests();
   }
 
   /**
     * Calculate if this request should be processed based on the limit configuration
+    * @param $ratelimit int Limit is x requests - 120
+    * @param $ratelimitPeriod int Every x seconds - 60
+    * @param $timeoutDuration int Timeout lasts x seconds - 360
     */
-  public function ratelimitRequests () {
+  public function evaluate ($ratelimit, $ratelimitPeriod, $timeoutDuration) {
+
+    # Rate limit and timeout configuration
+    $this->ratelimit = $ratelimit;
+    $this->ratelimitPeriod = $ratelimitPeriod;
+    $this->timeoutDuration = $timeoutDuration;
 
     # If no request session has been started
     if (!$this->issetSession('startTime')) {
