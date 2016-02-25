@@ -3,32 +3,38 @@
  * @ratelimitRequests A session based helper to enforce a cooldown period on repeated
  *                   request attempts.
  * @author Craig van Tonder
- * @version 0.0.2
+ * @version 0.0.3
  */
 
 class ratelimitRequests
 {
-  private $ratelimit;
-  private $ratelimitPeriod;
-  private $ratelimitPeriod;
-
   /**
     * Create router in one call from config.
     *
     * @param $ratelimit int Limit is x requests - 120
     * @param $ratelimitPeriod int Every x seconds - 60
-    * @param $cooldownPeriod int Cooldown lasts x seconds - 360
+    * @param $timeoutDuration int Timeout lasts x seconds - 360
     */
-  public function __construct($ratelimit, $ratelimitPeriod, $cooldownPeriod)
+
+  // The key/name of the storage session
+  private $sessionName;
+  // Request limit at x requests
+  private $ratelimit;
+  // Request limit reset after x seconds
+  private $ratelimitPeriod;
+  // Timeout period lasts is x seconds
+  private $timeoutDuration;
+
+  public function __construct($ratelimit, $ratelimitPeriod, $timeoutDuration)
   {
-    # Initalise sessions if they have not already been started
-    $this->initialiseSessions ();
     # Define the index of the request session
     $this->sessionName = 'RATELIMITE_REQUEST_EXAMPLE_COM';
-    # Rate limit and cooldown configuration
-    $this->ratelimit = $ratelimit; // Request limit at x requests
-    $this->ratelimitPeriod = $ratelimitPeriod; // Request limit reset after x seconds
-    $this->cooldownPeriod = $cooldownPeriod; // Cooldown period lasts is x seconds
+    # Rate limit and timeout configuration
+    $this->ratelimit = $ratelimit;
+    $this->ratelimitPeriod = $ratelimitPeriod;
+    $this->timeoutDuration = $timeoutDuration;
+    # Initalise sessions if they have not already been started
+    $this->initialiseSessions ();
     # Evaluate the request and cooldown the client if neccessary
     $this->ratelimitRequests();
   }
@@ -39,55 +45,55 @@ class ratelimitRequests
   public function ratelimitRequests () {
 
     # If no request session has been started
-    if (!$this->issetSession('time')) {
+    if (!$this->issetSession('startTime')) {
       // Refresh the session
       $this->refresh();
     }
 
-    # If a lock on the request session has been set
-    elseif ($this->getSession('lock')) {
-      // If the locks timeout has not expired
-      if (time() - $this->getSession('lockTime') < $this->cooldownPeriod) {
-        // Lock requests
-        $this->lock();
+    # If a timeout on the request session has been set
+    elseif ($this->getSession('timeout')) {
+      // If the timeout has not expired yet
+      if (time() - $this->getSession('timeoutDuration') < $this->timeoutDuration) {
+        // Timeout requests
+        $this->timeout();
       }
-      // If the locks timeout has expired
+      // If the timeout has expired
       else {
         // Refresh the session
         $this->refresh();
       }
     }
 
-    # The request session has started more than 1 minute ago
-    elseif ($this->issetSession('time') && (time() - $this->getSession('time') > $this->ratelimitPeriod)) {
+    # The request session has started more than $ratelimitPeriod seconds ago
+    elseif ($this->issetSession('startTime') && (time() - $this->getSession('startTime') > $this->ratelimitPeriod)) {
       // Refresh the session
       $this->refresh();
     }
 
-    # The request session has started but is less than 1 minute ago
+    # The request session has started but is less than $ratelimit seconds ago
     else {
-      // Reset creation time
-      setSession($this->sessionName, 'time', time());
-      // Get the enumeration sessions current count
-      $count = $this->getSession('count');
-      // Rate limit the enumeration to 255 per minute
+      // Reset the request sessions creation time
+      $this->setSession($this->sessionName, 'startTime', time());
+      // Get the request sessions current count
+      $count = $this->getSession('reqCount');
+      // Rate limit the requests to $ratelimit per $ratelimitPeriod seconds
       if ($count == $this->ratelimit) {
-        // Lock requests
-        $this->lock();
+        // Timeout requests
+        $this->timeout();
       }
       // No rate limit needs to be enforced so update the count
       else {
-        // Increment the inital count
+        // Increment the inital count of requests
         $count++;
-        // Set the new count
-        $this->setSession('count', $count);
-        // Set the lock status
-        $this->setSession('status', TRUE);
+        // Set the new count of requests
+        $this->setSession('reqCount', $count);
+        // Set the timeout status
+        $this->setSession('timeoutStatus', TRUE);
       }
     }
 
-    # Return the request sessions lock status
-    return $this->getSession('status');
+    # Return the request sessions timeout status
+    return $this->getSession('timeoutStatus');
   }
 
   /**
@@ -100,31 +106,29 @@ class ratelimitRequests
   }
 
   /**
-    * Helper to lock/halt/cooldown requests via the request session
-    *
-    * @param $this->sessionName string Limit is x requests - 120
+    * Helper to timeout/halt/cooldown requests via the request session
     */
-  private function lock () {
-    // Set the lock state
-    $this->setSession('lock', TRUE);
-    // Set the lock time
-    $this->setSession('lockTime', time());
-    // Set the lock status
-    $this->setSession('status', FALSE);
+  private function timeout () {
+    // Set the timeout state
+    $this->setSession('timeout', TRUE);
+    // Set the timeout time
+    $this->setSession('timeoutDuration', time());
+    // Set the timeout status
+    $this->setSession('timeoutStatus', FALSE);
   }
 
   /**
-    * Helper function to refresh the request session
+    * Helper to refresh the request session values
     */
   private function refresh () {
     // Set the creation time
-    $this->setSession('time', time());
+    $this->setSession('startTime', time());
     // Set the inital count
-    $this->setSession('count', 1);
-    // Set the lock state
-    $this->setSession('lock', FALSE);
-    // Set the lock status
-    $this->setSession('status', TRUE);
+    $this->setSession('reqCount', 1);
+    // Set the timeout state
+    $this->setSession('timeout', FALSE);
+    // Set the timeout status
+    $this->setSession('timeoutStatus', TRUE);
   }
 
   /**
