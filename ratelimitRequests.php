@@ -1,12 +1,12 @@
 <?php
 /**
- * @ratelimitRequest A session based helper to enforce a cooldown period on repeated
+ * @ratelimitRequests A session based helper to enforce a cooldown period on repeated
  *                   request attempts.
  * @author Craig van Tonder
- * @version 0.0.1
+ * @version 0.0.2
  */
 
-class ratelimitRequest
+class ratelimitRequests
 {
   private $ratelimit;
   private $ratelimitPeriod;
@@ -29,12 +29,14 @@ class ratelimitRequest
     $this->ratelimit = $ratelimit; // Request limit at x requests
     $this->ratelimitPeriod = $ratelimitPeriod; // Request limit reset after x seconds
     $this->cooldownPeriod = $cooldownPeriod; // Cooldown period lasts is x seconds
+    # Evaluate the request and cooldown the client if neccessary
+    $this->ratelimitRequests();
   }
 
   /**
     * Calculate if this request should be processed based on the limit configuration
     */
-  public function ratelimitRequest () {
+  public function ratelimitRequests () {
 
     # If no request session has been started
     if (!$this->issetSession('time')) {
@@ -135,14 +137,14 @@ class ratelimitRequest
     // If we have an array
     if (strlen($sessionKey) > 0) {
       // If the array key is set
-      if (isset($_SESSION[$this->sessionName . '_' . sessName][$sessionKey])) {
+      if (isset($_SESSION[$this->sessionName][$sessionKey])) {
         return TRUE;
       } else {
         return FALSE;
       }
     } else {
       // If the array key is set
-      if (isset($_SESSION[$this->sessionName . '_' . sessName])) {
+      if (isset($_SESSION[$this->sessionName])) {
         return TRUE;
       } else {
         return FALSE;
@@ -162,9 +164,9 @@ class ratelimitRequest
   {
     // If we have an array
     if (strlen($sessionKey) > 0) {
-      $_SESSION[$this->sessionName . '_' . sessName][$sessionKey] = $sessionValue;
+      $_SESSION[$this->sessionName][$sessionKey] = $sessionValue;
     } else {
-      $_SESSION[$this->sessionName . '_' . sessName] = $sessionValue;
+      $_SESSION[$this->sessionName] = $sessionValue;
     }
   }
 
@@ -177,9 +179,9 @@ class ratelimitRequest
   {
     // If we have an array
     if (strlen($sessionKey) > 0) {
-      return $_SESSION[$sessionName . '_' . sessName][$sessionKey];
+      return $_SESSION[$sessionName][$sessionKey];
     } else {
-      return $_SESSION[$sessionName . '_' . sessName];
+      return $_SESSION[$sessionName];
     }
   }
 }
