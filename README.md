@@ -22,3 +22,5 @@ Example Usage:
       printf('This is a successful request!');
       exit;
     }
+    
+Licence: MIT
