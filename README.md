@@ -1,7 +1,7 @@
 PHP ratelimitRequests
 =====================
 
-A session based helper to enforce a cooldown period on repeated request attempts.
+A class which relies on sessions to enforce a cooldown period for repeated request attempts. 
 
 Example Usage:
 
